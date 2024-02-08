@@ -1,16 +1,17 @@
-выключаем auto commit:  
+Выключаем auto commit и проверяем  
 ``` sql
 postgres=# \set AUTOCOMMIT OFF
 postgres=# \echo :AUTOCOMMIT
 OFF
 ```
-создаем и наполняем таблицу:  
+Создаем и наполняем таблицу 
 ``` sql
 create table persons(id serial, first_name text, second_name text);   
 insert into persons(first_name, second_name) values('ivan', 'ivanov');  
 insert into persons(first_name, second_name) values('petr', 'petrov');  
 commit;
 ```
+Проверяем запросом результат
 ``` sql
 postgres=# select * from persons;
  id | first_name | second_name 
@@ -20,7 +21,7 @@ postgres=# select * from persons;
 (2 rows)
 ```
 
-проверяем текущий уровень изоляции:
+Проверяем текущий уровень изоляции
 ``` sql
 postgres=# show transaction isolation level;
  transaction_isolation 
@@ -29,17 +30,18 @@ postgres=# show transaction isolation level;
 (1 row)
 ```
 
-начинаем новую транзакцию в обоих сессиях с дефолтным (не меняя) уровнем изоляции  
-в первой сессии добавляем новую запись 
+Начинаем новую транзакцию в двух сессиях, уровень изоляции дэфолтный - read committed (не меняем).
+
+В первой сессии добавляем новую запись 
 ``` sql
 insert into persons(first_name, second_name) values('sergey', 'sergeev');
 ```
-во второй сессии
+Во второй сессии выполняем запрос
 ``` sql
 select * from persons;
 ```
 
-результат:
+Видим результат
 ``` sql
 postgres=# select * from persons;
  id | first_name | second_name 
@@ -48,18 +50,19 @@ postgres=# select * from persons;
   2 | petr       | petrov
 (2 rows)
 ```
-<b>новая запись не отображается, т.к. установлен дефолтный уровень изоляции read committed и отключен автокомит  
-(вставка первой транзакцией не зафиксирована)</b>    
-фиксируем первую транзакцию 
+Новая запись не отображается, т.к. установлен дефолтный уровень изоляции read committed и отключен автокомит.
+
+Вставка первой транзакцией ещё не зафиксирована,    
+фиксируем её 
 ``` sql
 commit;
 ```
-еще раз проверяем во второй транзакции
+Повторно проверяем во второй транзакции
 ``` sql
 select * from persons;
 ```
 
-результат:
+Результат
 ``` sql
 postgres=*# select * from persons;
  id | first_name | second_name 
@@ -69,12 +72,13 @@ postgres=*# select * from persons;
   4 | sergey     | sergeev
 (3 rows)
 ```
-<b>новая запись отображается по причине того, что в первой транзакции был commit - данные зафиксированы</b>    
-фиксируем вторую транзакцию
+Новая запись отображается по причине того, что в первой транзакции был commit - данные зафиксированы.
+
+Фиксируем вторую транзакцию
 ``` sql
 commit;
 ```
-устанавливаем в сессиях уровень изоляции транзакций repeatable read 
+Устанавливаем в сессиях уровень изоляции транзакций repeatable read и проверяем запросом 
 ``` sql
 postgres=# set transaction isolation level repeatable read;
 SET
@@ -84,13 +88,13 @@ postgres=*# show transaction isolation level;
  repeatable read
 (1 row)
 ```
-в первой сессии добавляем новую запись 
+В первой сессии добавляем новую запись 
 ``` sql
 postgres=*# insert into persons(first_name, second_name) values('sveta', 'svetova');
 INSERT 0 1
 ```
 
-во второй сессии выполняем
+Во второй сессии выполняем запрос
 ``` sql
 postgres=*# select * from persons;
  id | first_name | second_name 
@@ -100,13 +104,13 @@ postgres=*# select * from persons;
   4 | sergey     | sergeev
 (3 rows)
 ```
-<b>вставленные данные не отображаются, т.к. в первой сессии не было фиксации</b>  
+Вставленные данные не отображаются, т.к. в первой сессии не было фиксации 
 фиксируем вставку в первой сессии
 ``` sql
 commit;
 ```
 
-во второй сессии повторно выполняем запрос
+Во второй сессии повторно выполняем запрос
 ``` sql
 postgres=*# select * from persons;
  id | first_name | second_name 
@@ -116,13 +120,15 @@ postgres=*# select * from persons;
   4 | sergey     | sergeev
 (3 rows)
 ```
-<b>вставленные данные не отображаются, даже при фиксации транзакции в первой сессии.  
-вторая транзакция видит данные (снимок данных) на момент своего начала  
-и не ввидит остальные завершенные изменения, сделанные в других сессиях в этот момент (фантомное чтение).  
-неповторяющее чтение так же не работает - сколько бы не читали данные - реезульт будет тот же.
-</b>  
+Вставленные данные не отображаются, даже при фиксации транзакции в первой сессии.  
 
-<b>фиксируем транзакцию во второй сессии и видим изменения.</b>
+Вторая транзакция видит данные (снимок данных) на момент своего начала  
+и не ввидит остальные завершенные изменения, сделанные в других сессиях в этот момент (фантомное чтение).  
+
+Неповторяющее чтение так же не работает - сколько бы не читали данные - реезульт будет тот же.
+ 
+
+Фиксируем транзакцию во второй сессии и видим изменения
 ``` sql
 postgres=*# commit;
 COMMIT
