@@ -1,14 +1,18 @@
 Установил ВМ с Ubuntu 22.04  
+
 ![1](https://github.com/aneprincev/otus_my/blob/homework_06/6_1.png?raw=true)  
   
-Установил PostgreSQL 15, создал таблицу с данными  
+Установил PostgreSQL 15, создал таблицу с данными 
+
 ![2](https://github.com/aneprincev/otus_my/blob/homework_06/6_2.png?raw=true)  
   
 Создал vhd на 10 GB, подключил к VM 
+
 ![3](https://github.com/aneprincev/otus_my/blob/homework_06/6_3.png?raw=true)  
   
 Разметил, выбрал файловую систему и примонтировал по инструкции:  
 https://www.digitalocean.com/community/tutorials/how-to-partition-and-format-storage-devices-in-linux#step-5-mount-the-new-filesystem
+
 ![4](https://github.com/aneprincev/otus_my/blob/homework_06/6_4.png?raw=true)  
   
 Перезагрузил систему, диск остался примонтированным  
